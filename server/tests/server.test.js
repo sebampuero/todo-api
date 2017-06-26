@@ -12,7 +12,9 @@ const todos = [{
 },
 {
   _id : new ObjectID(),
-  text : 'second test todo'
+  text : 'second test todo',
+  completed: true,
+  completedAt : 2342534
 }]
 
 beforeEach((done)=>{ //wipe db out before every test
@@ -28,11 +30,13 @@ describe('POST /todos', ()=>{
 
     request(app).
       post('/todos').
-      send({text}).
+      send({
+        text:text
+      }).
       expect(200).
       expect((res)=>{//expect the result to be the text created
         //the server sends back the just created object
-        expect(res.body.text).toBe(text);
+        expect(res.body.todo.text).toBe(text);
       }).
       end((err,res)=>{
         if(err){
@@ -142,5 +146,38 @@ describe('DELETE /todos/:id',()=>{
       .delete('/todos/4234')
       .expect(404)
       .end(done);
+  });
+});
+
+describe('PATCH /todos/:id',()=>{
+  it('should update the todo',(done)=>{
+    var todo = {
+      text: 'Updating test',
+      completed: true
+    }
+    request(app)
+      .patch(`/todos/${todos[0]._id}`)
+      .send(todo)
+      .expect(200)
+      .expect((res)=>{
+        expect(res.body.todo.text).toNotBe(todos[0].text);
+        expect(res.body.todo.completed).toBe(true);
+        expect(res.body.todo.completedAt).toBeA('number');
+      }).end(done);
+  });
+  it('should clear completedAt when todo is not completed',(done)=>{
+      var todo = {
+        text : 'Second update',
+        completed: false
+      }
+      request(app)
+        .patch(`/todos/${todos[1]._id}`)
+        .send(todo)
+        .expect(200)
+        .expect((res)=>{
+          expect(res.body.todo.text).toNotBe(todos[1].text);
+          expect(res.body.todo.completed).toBe(false);
+          expect(res.body.todo.completedAt).toNotExist();
+        }).end(done);
   });
 });
