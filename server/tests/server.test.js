@@ -89,7 +89,7 @@ describe('GET/todos/:id',()=>{
       .get(`/todos/${todos[0]._id.toHexString()}`)
       .expect(200)
       .expect((res)=>{
-        expect(res.body.text).toBe(todos[0].text)
+        expect(res.body.todo.text).toBe(todos[0].text)
       }).
       end(done);
   });
@@ -105,6 +105,41 @@ describe('GET/todos/:id',()=>{
   it('should return 404 if invalid id',(done)=>{
     request(app)
       .get('/todos/123')
+      .expect(404)
+      .end(done);
+  });
+});
+
+describe('DELETE /todos/:id',()=>{
+  it('should delete a todo',(done)=>{
+    request(app)
+      .delete(`/todos/${todos[1]._id.toHexString()}`)
+      .expect(200)
+      .expect((res)=>{
+        expect(res.body.todo.text).toBe(todos[1].text)
+      })
+      .end((err,res)=>{
+        if(err)
+          done(err);
+
+        Todo.find(todos[1].text).then((results)=>{
+          expect(results.length).toBe(1);
+          expect(todos[1].text).toNotInclude(results);
+          done();
+        }).catch((error)=> done(error));
+      })
+  });
+
+  it('should return 404 if todo not found',(done)=>{
+    request(app)
+      .delete(`/todos/${new ObjectID()}`)
+      .expect(404)
+      .end(done);
+  });
+
+  it('should return 404 if id not valid',(done)=>{
+    request(app)
+      .delete('/todos/4234')
       .expect(404)
       .end(done);
   });
