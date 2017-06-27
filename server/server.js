@@ -6,6 +6,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 var port = process.env.PORT;
@@ -102,6 +103,10 @@ app.post('/users',(req,res)=>{
 });
 
 
+
+app.get('/users/me',authenticate,(req,res)=>{ //use the authenticate middleware to gather data if auth was successful
+  res.send(req.user);
+});
 
 app.listen(port,()=>{
   console.log('Listening on port', port);
