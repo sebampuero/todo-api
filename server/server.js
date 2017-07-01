@@ -41,7 +41,7 @@ app.get('/todos/:id',authenticate,(req,res)=>{
   }
   Todo.findOne({
     _id:id,
-    _creator : req.user._id
+    _creator : req.user._id //this comes from the authenticate middleware
   }).then((todo)=>{
     if(todo){ //if todo exists
       res.send({todo});
@@ -58,14 +58,17 @@ app.delete('/todos/:id',authenticate,(req,res)=>{
   if(!ObjectID.isValid(id)){ //check if id is correct
     return res.status(404).send()
   }
-  Todo.findByIdAndRemove(id).then((todo)=>{
+  Todo.findOneAndRemove({
+    _id : id,
+    _creator : req.user._id
+  }).then((todo)=>{
     if(todo)
       return res.send({todo});
     res.status(404).send();
   }).catch((e)=> res.status(400).send());
 });
 
-app.patch('/todos/:id',(req,res)=>{
+app.patch('/todos/:id',authenticate,(req,res)=>{
   var id = req.params.id;
   //pick only the required props into the body
   var body = _.pick(req.body,['text','completed']);
@@ -79,9 +82,12 @@ app.patch('/todos/:id',(req,res)=>{
     body.completed = false;
     body.completedAt = null;
   }
-  //find the todo by id and update its contents with the body object
+  //find the todo and update its contents with the body object
   //new: true returns the new updated todo
-  Todo.findByIdAndUpdate(id, {
+  Todo.findOneAndUpdate({
+    _id:id,
+    _creator: req.user._id
+  }, {
     $set: body
   },{
     new: true
