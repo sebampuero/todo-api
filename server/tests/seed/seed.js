@@ -18,18 +18,24 @@ const users = [{
 {
   _id : userTwoId,
   email : 'kinjds@caca.com',
-  password : 'peneduro'
+  password : 'peneduro',
+  tokens : [{
+    access : 'auth',
+    token : jwt.sign({_id: userTwoId, access : 'auth'},'acb123').toString()
+  }]
 }]
 
 const todos = [{
   _id : new ObjectID(),
-  text : 'first test todo'
+  text : 'first test todo',
+  _creator : userOneId
 },
 {
   _id : new ObjectID(),
   text : 'second test todo',
   completed: true,
-  completedAt : 2342534
+  completedAt : 2342534,
+  _creator : userTwoId
 }]
 
 const populateTodos =(done)=>{ //wipe db out before every test
